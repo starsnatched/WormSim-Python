@@ -1,0 +1,505 @@
+import json
+
+class Brain:
+    def __init__(self):
+        self.weights = self.load_weights()
+        self.this_state = 0
+        self.next_state = 1
+        self.fire_threshold = 30
+        self.accumleft = 0
+        self.accumright = 0
+        self.muscles = ['MVU', 'MVL', 'MDL', 'MVR', 'MDR']
+        
+        self.muscle_list = [
+            'MDL07', 'MDL08', 'MDL09', 'MDL10', 'MDL11', 'MDL12', 'MDL13', 'MDL14', 'MDL15', 'MDL16', 'MDL17', 'MDL18', 'MDL19', 'MDL20', 'MDL21', 'MDL22', 'MDL23',
+            'MVL07', 'MVL08', 'MVL09', 'MVL10', 'MVL11', 'MVL12', 'MVL13', 'MVL14', 'MVL15', 'MVL16', 'MVL17', 'MVL18', 'MVL19', 'MVL20', 'MVL21', 'MVL22', 'MVL23',
+            'MDR07', 'MDR08', 'MDR09', 'MDR10', 'MDR11', 'MDR12', 'MDR13', 'MDR14', 'MDR15', 'MDR16', 'MDR17', 'MDR18', 'MDR19', 'MDR20', 'MDL21', 'MDR22', 'MDR23',
+            'MVR07', 'MVR08', 'MVR09', 'MVR10', 'MVR11', 'MVR12', 'MVR13', 'MVR14', 'MVR15', 'MVR16', 'MVR17', 'MVR18', 'MVR19', 'MVR20', 'MVL21', 'MVR22', 'MVR23'
+        ]
+        
+        self.m_left = [
+            'MDL07', 'MDL08', 'MDL09', 'MDL10', 'MDL11', 'MDL12', 'MDL13', 'MDL14', 'MDL15', 'MDL16', 'MDL17', 'MDL18', 'MDL19', 'MDL20', 'MDL21', 'MDL22', 'MDL23',
+            'MVL07', 'MVL08', 'MVL09', 'MVL10', 'MVL11', 'MVL12', 'MVL13', 'MVL14', 'MVL15', 'MVL16', 'MVL17', 'MVL18', 'MVL19', 'MVL20', 'MVL21', 'MVL22', 'MVL23'
+        ]
+        
+        self.m_right = [
+            'MDR07', 'MDR08', 'MDR09', 'MDR10', 'MDR11', 'MDR12', 'MDR13', 'MDR14', 'MDR15', 'MDR16', 'MDR17', 'MDR18', 'MDR19', 'MDR20', 'MDL21', 'MDR22', 'MDR23',
+            'MVR07', 'MVR08', 'MVR09', 'MVR10', 'MVR11', 'MVR12', 'MVR13', 'MVR14', 'MVR15', 'MVR16', 'MVR17', 'MVR18', 'MVR19', 'MVR20', 'MVL21', 'MVR22', 'MVR23'
+        ]
+        
+        self.stimulate_hunger_neurons = True
+        self.stimulate_nose_touch_neurons = False
+        self.stimulate_food_sense_neurons = False
+        
+        self.post_synaptic = {}
+        self.connectome = {}
+        
+        self.setup()
+
+    def load_weights(self):
+        with open('weights.json', 'r') as f:
+            return json.load(f)
+
+    def dendrite_accumulate(self, pre_synaptic):
+        for post_synaptic, weight in self.weights.get(pre_synaptic, {}).items():
+            self.post_synaptic[post_synaptic][self.next_state] += weight
+
+    def setup(self):
+        for neuron in self.weights:
+            self.connectome[neuron] = lambda n=neuron: self.dendrite_accumulate(n)
+
+        for neuron in self.weights:
+            self.post_synaptic[neuron] = [0, 0]
+
+        self.post_synaptic['ADAL'] = [0, 0]
+        self.post_synaptic['ADAR'] = [0, 0]
+        self.post_synaptic['ADEL'] = [0, 0]
+        self.post_synaptic['ADER'] = [0, 0]
+        self.post_synaptic['ADFL'] = [0, 0]
+        self.post_synaptic['ADFR'] = [0, 0]
+        self.post_synaptic['ADLL'] = [0, 0]
+        self.post_synaptic['ADLR'] = [0, 0]
+        self.post_synaptic['AFDL'] = [0, 0]
+        self.post_synaptic['AFDR'] = [0, 0]
+        self.post_synaptic['AIAL'] = [0, 0]
+        self.post_synaptic['AIAR'] = [0, 0]
+        self.post_synaptic['AIBL'] = [0, 0]
+        self.post_synaptic['AIBR'] = [0, 0]
+        self.post_synaptic['AIML'] = [0, 0]
+        self.post_synaptic['AIMR'] = [0, 0]
+        self.post_synaptic['AINL'] = [0, 0]
+        self.post_synaptic['AINR'] = [0, 0]
+        self.post_synaptic['AIYL'] = [0, 0]
+        self.post_synaptic['AIYR'] = [0, 0]
+        self.post_synaptic['AIZL'] = [0, 0]
+        self.post_synaptic['AIZR'] = [0, 0]
+        self.post_synaptic['ALA'] = [0, 0]
+        self.post_synaptic['ALML'] = [0, 0]
+        self.post_synaptic['ALMR'] = [0, 0]
+        self.post_synaptic['ALNL'] = [0, 0]
+        self.post_synaptic['ALNR'] = [0, 0]
+        self.post_synaptic['AQR'] = [0, 0]
+        self.post_synaptic['AS1'] = [0, 0]
+        self.post_synaptic['AS10'] = [0, 0]
+        self.post_synaptic['AS11'] = [0, 0]
+        self.post_synaptic['AS2'] = [0, 0]
+        self.post_synaptic['AS3'] = [0, 0]
+        self.post_synaptic['AS4'] = [0, 0]
+        self.post_synaptic['AS5'] = [0, 0]
+        self.post_synaptic['AS6'] = [0, 0]
+        self.post_synaptic['AS7'] = [0, 0]
+        self.post_synaptic['AS8'] = [0, 0]
+        self.post_synaptic['AS9'] = [0, 0]
+        self.post_synaptic['ASEL'] = [0, 0]
+        self.post_synaptic['ASER'] = [0, 0]
+        self.post_synaptic['ASGL'] = [0, 0]
+        self.post_synaptic['ASGR'] = [0, 0]
+        self.post_synaptic['ASHL'] = [0, 0]
+        self.post_synaptic['ASHR'] = [0, 0]
+        self.post_synaptic['ASIL'] = [0, 0]
+        self.post_synaptic['ASIR'] = [0, 0]
+        self.post_synaptic['ASJL'] = [0, 0]
+        self.post_synaptic['ASJR'] = [0, 0]
+        self.post_synaptic['ASKL'] = [0, 0]
+        self.post_synaptic['ASKR'] = [0, 0]
+        self.post_synaptic['AUAL'] = [0, 0]
+        self.post_synaptic['AUAR'] = [0, 0]
+        self.post_synaptic['AVAL'] = [0, 0]
+        self.post_synaptic['AVAR'] = [0, 0]
+        self.post_synaptic['AVBL'] = [0, 0]
+        self.post_synaptic['AVBR'] = [0, 0]
+        self.post_synaptic['AVDL'] = [0, 0]
+        self.post_synaptic['AVDR'] = [0, 0]
+        self.post_synaptic['AVEL'] = [0, 0]
+        self.post_synaptic['AVER'] = [0, 0]
+        self.post_synaptic['AVFL'] = [0, 0]
+        self.post_synaptic['AVFR'] = [0, 0]
+        self.post_synaptic['AVG'] = [0, 0]
+        self.post_synaptic['AVHL'] = [0, 0]
+        self.post_synaptic['AVHR'] = [0, 0]
+        self.post_synaptic['AVJL'] = [0, 0]
+        self.post_synaptic['AVJR'] = [0, 0]
+        self.post_synaptic['AVKL'] = [0, 0]
+        self.post_synaptic['AVKR'] = [0, 0]
+        self.post_synaptic['AVL'] = [0, 0]
+        self.post_synaptic['AVM'] = [0, 0]
+        self.post_synaptic['AWAL'] = [0, 0]
+        self.post_synaptic['AWAR'] = [0, 0]
+        self.post_synaptic['AWBL'] = [0, 0]
+        self.post_synaptic['AWBR'] = [0, 0]
+        self.post_synaptic['AWCL'] = [0, 0]
+        self.post_synaptic['AWCR'] = [0, 0]
+        self.post_synaptic['BAGL'] = [0, 0]
+        self.post_synaptic['BAGR'] = [0, 0]
+        self.post_synaptic['BDUL'] = [0, 0]
+        self.post_synaptic['BDUR'] = [0, 0]
+        self.post_synaptic['CEPDL'] = [0, 0]
+        self.post_synaptic['CEPDR'] = [0, 0]
+        self.post_synaptic['CEPVL'] = [0, 0]
+        self.post_synaptic['CEPVR'] = [0, 0]
+        self.post_synaptic['DA1'] = [0, 0]
+        self.post_synaptic['DA2'] = [0, 0]
+        self.post_synaptic['DA3'] = [0, 0]
+        self.post_synaptic['DA4'] = [0, 0]
+        self.post_synaptic['DA5'] = [0, 0]
+        self.post_synaptic['DA6'] = [0, 0]
+        self.post_synaptic['DA7'] = [0, 0]
+        self.post_synaptic['DA8'] = [0, 0]
+        self.post_synaptic['DA9'] = [0, 0]
+        self.post_synaptic['DB1'] = [0, 0]
+        self.post_synaptic['DB2'] = [0, 0]
+        self.post_synaptic['DB3'] = [0, 0]
+        self.post_synaptic['DB4'] = [0, 0]
+        self.post_synaptic['DB5'] = [0, 0]
+        self.post_synaptic['DB6'] = [0, 0]
+        self.post_synaptic['DB7'] = [0, 0]
+        self.post_synaptic['DD1'] = [0, 0]
+        self.post_synaptic['DD2'] = [0, 0]
+        self.post_synaptic['DD3'] = [0, 0]
+        self.post_synaptic['DD4'] = [0, 0]
+        self.post_synaptic['DD5'] = [0, 0]
+        self.post_synaptic['DD6'] = [0, 0]
+        self.post_synaptic['DVA'] = [0, 0]
+        self.post_synaptic['DVB'] = [0, 0]
+        self.post_synaptic['DVC'] = [0, 0]
+        self.post_synaptic['FLPL'] = [0, 0]
+        self.post_synaptic['FLPR'] = [0, 0]
+        self.post_synaptic['HSNL'] = [0, 0]
+        self.post_synaptic['HSNR'] = [0, 0]
+        self.post_synaptic['I1L'] = [0, 0]
+        self.post_synaptic['I1R'] = [0, 0]
+        self.post_synaptic['I2L'] = [0, 0]
+        self.post_synaptic['I2R'] = [0, 0]
+        self.post_synaptic['I3'] = [0, 0]
+        self.post_synaptic['I4'] = [0, 0]
+        self.post_synaptic['I5'] = [0, 0]
+        self.post_synaptic['I6'] = [0, 0]
+        self.post_synaptic['IL1DL'] = [0, 0]
+        self.post_synaptic['IL1DR'] = [0, 0]
+        self.post_synaptic['IL1L'] = [0, 0]
+        self.post_synaptic['IL1R'] = [0, 0]
+        self.post_synaptic['IL1VL'] = [0, 0]
+        self.post_synaptic['IL1VR'] = [0, 0]
+        self.post_synaptic['IL2L'] = [0, 0]
+        self.post_synaptic['IL2R'] = [0, 0]
+        self.post_synaptic['IL2DL'] = [0, 0]
+        self.post_synaptic['IL2DR'] = [0, 0]
+        self.post_synaptic['IL2VL'] = [0, 0]
+        self.post_synaptic['IL2VR'] = [0, 0]
+        self.post_synaptic['LUAL'] = [0, 0]
+        self.post_synaptic['LUAR'] = [0, 0]
+        self.post_synaptic['M1'] = [0, 0]
+        self.post_synaptic['M2L'] = [0, 0]
+        self.post_synaptic['M2R'] = [0, 0]
+        self.post_synaptic['M3L'] = [0, 0]
+        self.post_synaptic['M3R'] = [0, 0]
+        self.post_synaptic['M4'] = [0, 0]
+        self.post_synaptic['M5'] = [0, 0]
+        self.post_synaptic['MANAL'] = [0, 0]
+        self.post_synaptic['MCL'] = [0, 0]
+        self.post_synaptic['MCR'] = [0, 0]
+        self.post_synaptic['MDL01'] = [0, 0]
+        self.post_synaptic['MDL02'] = [0, 0]
+        self.post_synaptic['MDL03'] = [0, 0]
+        self.post_synaptic['MDL04'] = [0, 0]
+        self.post_synaptic['MDL05'] = [0, 0]
+        self.post_synaptic['MDL06'] = [0, 0]
+        self.post_synaptic['MDL07'] = [0, 0]
+        self.post_synaptic['MDL08'] = [0, 0]
+        self.post_synaptic['MDL09'] = [0, 0]
+        self.post_synaptic['MDL10'] = [0, 0]
+        self.post_synaptic['MDL11'] = [0, 0]
+        self.post_synaptic['MDL12'] = [0, 0]
+        self.post_synaptic['MDL13'] = [0, 0]
+        self.post_synaptic['MDL14'] = [0, 0]
+        self.post_synaptic['MDL15'] = [0, 0]
+        self.post_synaptic['MDL16'] = [0, 0]
+        self.post_synaptic['MDL17'] = [0, 0]
+        self.post_synaptic['MDL18'] = [0, 0]
+        self.post_synaptic['MDL19'] = [0, 0]
+        self.post_synaptic['MDL20'] = [0, 0]
+        self.post_synaptic['MDL21'] = [0, 0]
+        self.post_synaptic['MDL22'] = [0, 0]
+        self.post_synaptic['MDL23'] = [0, 0]
+        self.post_synaptic['MDL24'] = [0, 0]
+        self.post_synaptic['MDR01'] = [0, 0]
+        self.post_synaptic['MDR02'] = [0, 0]
+        self.post_synaptic['MDR03'] = [0, 0]
+        self.post_synaptic['MDR04'] = [0, 0]
+        self.post_synaptic['MDR05'] = [0, 0]
+        self.post_synaptic['MDR06'] = [0, 0]
+        self.post_synaptic['MDR07'] = [0, 0]
+        self.post_synaptic['MDR08'] = [0, 0]
+        self.post_synaptic['MDR09'] = [0, 0]
+        self.post_synaptic['MDR10'] = [0, 0]
+        self.post_synaptic['MDR11'] = [0, 0]
+        self.post_synaptic['MDR12'] = [0, 0]
+        self.post_synaptic['MDR13'] = [0, 0]
+        self.post_synaptic['MDR14'] = [0, 0]
+        self.post_synaptic['MDR15'] = [0, 0]
+        self.post_synaptic['MDR16'] = [0, 0]
+        self.post_synaptic['MDR17'] = [0, 0]
+        self.post_synaptic['MDR18'] = [0, 0]
+        self.post_synaptic['MDR19'] = [0, 0]
+        self.post_synaptic['MDR20'] = [0, 0]
+        self.post_synaptic['MDR21'] = [0, 0]
+        self.post_synaptic['MDR22'] = [0, 0]
+        self.post_synaptic['MDR23'] = [0, 0]
+        self.post_synaptic['MDR24'] = [0, 0]
+        self.post_synaptic['MI'] = [0, 0]
+        self.post_synaptic['MVL01'] = [0, 0]
+        self.post_synaptic['MVL02'] = [0, 0]
+        self.post_synaptic['MVL03'] = [0, 0]
+        self.post_synaptic['MVL04'] = [0, 0]
+        self.post_synaptic['MVL05'] = [0, 0]
+        self.post_synaptic['MVL06'] = [0, 0]
+        self.post_synaptic['MVL07'] = [0, 0]
+        self.post_synaptic['MVL08'] = [0, 0]
+        self.post_synaptic['MVL09'] = [0, 0]
+        self.post_synaptic['MVL10'] = [0, 0]
+        self.post_synaptic['MVL11'] = [0, 0]
+        self.post_synaptic['MVL12'] = [0, 0]
+        self.post_synaptic['MVL13'] = [0, 0]
+        self.post_synaptic['MVL14'] = [0, 0]
+        self.post_synaptic['MVL15'] = [0, 0]
+        self.post_synaptic['MVL16'] = [0, 0]
+        self.post_synaptic['MVL17'] = [0, 0]
+        self.post_synaptic['MVL18'] = [0, 0]
+        self.post_synaptic['MVL19'] = [0, 0]
+        self.post_synaptic['MVL20'] = [0, 0]
+        self.post_synaptic['MVL21'] = [0, 0]
+        self.post_synaptic['MVL22'] = [0, 0]
+        self.post_synaptic['MVL23'] = [0, 0]
+        self.post_synaptic['MVR01'] = [0, 0]
+        self.post_synaptic['MVR02'] = [0, 0]
+        self.post_synaptic['MVR03'] = [0, 0]
+        self.post_synaptic['MVR04'] = [0, 0]
+        self.post_synaptic['MVR05'] = [0, 0]
+        self.post_synaptic['MVR06'] = [0, 0]
+        self.post_synaptic['MVR07'] = [0, 0]
+        self.post_synaptic['MVR08'] = [0, 0]
+        self.post_synaptic['MVR09'] = [0, 0]
+        self.post_synaptic['MVR10'] = [0, 0]
+        self.post_synaptic['MVR11'] = [0, 0]
+        self.post_synaptic['MVR12'] = [0, 0]
+        self.post_synaptic['MVR13'] = [0, 0]
+        self.post_synaptic['MVR14'] = [0, 0]
+        self.post_synaptic['MVR15'] = [0, 0]
+        self.post_synaptic['MVR16'] = [0, 0]
+        self.post_synaptic['MVR17'] = [0, 0]
+        self.post_synaptic['MVR18'] = [0, 0]
+        self.post_synaptic['MVR19'] = [0, 0]
+        self.post_synaptic['MVR20'] = [0, 0]
+        self.post_synaptic['MVR21'] = [0, 0]
+        self.post_synaptic['MVR22'] = [0, 0]
+        self.post_synaptic['MVR23'] = [0, 0]
+        self.post_synaptic['MVR24'] = [0, 0]
+        self.post_synaptic['MVULVA'] = [0, 0]
+        self.post_synaptic['NSML'] = [0, 0]
+        self.post_synaptic['NSMR'] = [0, 0]
+        self.post_synaptic['OLLL'] = [0, 0]
+        self.post_synaptic['OLLR'] = [0, 0]
+        self.post_synaptic['OLQDL'] = [0, 0]
+        self.post_synaptic['OLQDR'] = [0, 0]
+        self.post_synaptic['OLQVL'] = [0, 0]
+        self.post_synaptic['OLQVR'] = [0, 0]
+        self.post_synaptic['PDA'] = [0, 0]
+        self.post_synaptic['PDB'] = [0, 0]
+        self.post_synaptic['PDEL'] = [0, 0]
+        self.post_synaptic['PDER'] = [0, 0]
+        self.post_synaptic['PHAL'] = [0, 0]
+        self.post_synaptic['PHAR'] = [0, 0]
+        self.post_synaptic['PHBL'] = [0, 0]
+        self.post_synaptic['PHBR'] = [0, 0]
+        self.post_synaptic['PHCL'] = [0, 0]
+        self.post_synaptic['PHCR'] = [0, 0]
+        self.post_synaptic['PLML'] = [0, 0]
+        self.post_synaptic['PLMR'] = [0, 0]
+        self.post_synaptic['PLNL'] = [0, 0]
+        self.post_synaptic['PLNR'] = [0, 0]
+        self.post_synaptic['PQR'] = [0, 0]
+        self.post_synaptic['PVCL'] = [0, 0]
+        self.post_synaptic['PVCR'] = [0, 0]
+        self.post_synaptic['PVDL'] = [0, 0]
+        self.post_synaptic['PVDR'] = [0, 0]
+        self.post_synaptic['PVM'] = [0, 0]
+        self.post_synaptic['PVNL'] = [0, 0]
+        self.post_synaptic['PVNR'] = [0, 0]
+        self.post_synaptic['PVPL'] = [0, 0]
+        self.post_synaptic['PVPR'] = [0, 0]
+        self.post_synaptic['PVQL'] = [0, 0]
+        self.post_synaptic['PVQR'] = [0, 0]
+        self.post_synaptic['PVR'] = [0, 0]
+        self.post_synaptic['PVT'] = [0, 0]
+        self.post_synaptic['PVWL'] = [0, 0]
+        self.post_synaptic['PVWR'] = [0, 0]
+        self.post_synaptic['RIAL'] = [0, 0]
+        self.post_synaptic['RIAR'] = [0, 0]
+        self.post_synaptic['RIBL'] = [0, 0]
+        self.post_synaptic['RIBR'] = [0, 0]
+        self.post_synaptic['RICL'] = [0, 0]
+        self.post_synaptic['RICR'] = [0, 0]
+        self.post_synaptic['RID'] = [0, 0]
+        self.post_synaptic['RIFL'] = [0, 0]
+        self.post_synaptic['RIFR'] = [0, 0]
+        self.post_synaptic['RIGL'] = [0, 0]
+        self.post_synaptic['RIGR'] = [0, 0]
+        self.post_synaptic['RIH'] = [0, 0]
+        self.post_synaptic['RIML'] = [0, 0]
+        self.post_synaptic['RIMR'] = [0, 0]
+        self.post_synaptic['RIPL'] = [0, 0]
+        self.post_synaptic['RIPR'] = [0, 0]
+        self.post_synaptic['RIR'] = [0, 0]
+        self.post_synaptic['RIS'] = [0, 0]
+        self.post_synaptic['RIVL'] = [0, 0]
+        self.post_synaptic['RIVR'] = [0, 0]
+        self.post_synaptic['RMDDL'] = [0, 0]
+        self.post_synaptic['RMDDR'] = [0, 0]
+        self.post_synaptic['RMDL'] = [0, 0]
+        self.post_synaptic['RMDR'] = [0, 0]
+        self.post_synaptic['RMDVL'] = [0, 0]
+        self.post_synaptic['RMDVR'] = [0, 0]
+        self.post_synaptic['RMED'] = [0, 0]
+        self.post_synaptic['RMEL'] = [0, 0]
+        self.post_synaptic['RMER'] = [0, 0]
+        self.post_synaptic['RMEV'] = [0, 0]
+        self.post_synaptic['RMFL'] = [0, 0]
+        self.post_synaptic['RMFR'] = [0, 0]
+        self.post_synaptic['RMGL'] = [0, 0]
+        self.post_synaptic['RMGR'] = [0, 0]
+        self.post_synaptic['RMHL'] = [0, 0]
+        self.post_synaptic['RMHR'] = [0, 0]
+        self.post_synaptic['SAADL'] = [0, 0]
+        self.post_synaptic['SAADR'] = [0, 0]
+        self.post_synaptic['SAAVL'] = [0, 0]
+        self.post_synaptic['SAAVR'] = [0, 0]
+        self.post_synaptic['SABD'] = [0, 0]
+        self.post_synaptic['SABVL'] = [0, 0]
+        self.post_synaptic['SABVR'] = [0, 0]
+        self.post_synaptic['SDQL'] = [0, 0]
+        self.post_synaptic['SDQR'] = [0, 0]
+        self.post_synaptic['SIADL'] = [0, 0]
+        self.post_synaptic['SIADR'] = [0, 0]
+        self.post_synaptic['SIAVL'] = [0, 0]
+        self.post_synaptic['SIAVR'] = [0, 0]
+        self.post_synaptic['SIBDL'] = [0, 0]
+        self.post_synaptic['SIBDR'] = [0, 0]
+        self.post_synaptic['SIBVL'] = [0, 0]
+        self.post_synaptic['SIBVR'] = [0, 0]
+        self.post_synaptic['SMBDL'] = [0, 0]
+        self.post_synaptic['SMBDR'] = [0, 0]
+        self.post_synaptic['SMBVL'] = [0, 0]
+        self.post_synaptic['SMBVR'] = [0, 0]
+        self.post_synaptic['SMDDL'] = [0, 0]
+        self.post_synaptic['SMDDR'] = [0, 0]
+        self.post_synaptic['SMDVL'] = [0, 0]
+        self.post_synaptic['SMDVR'] = [0, 0]
+        self.post_synaptic['URADL'] = [0, 0]
+        self.post_synaptic['URADR'] = [0, 0]
+        self.post_synaptic['URAVL'] = [0, 0]
+        self.post_synaptic['URAVR'] = [0, 0]
+        self.post_synaptic['URBL'] = [0, 0]
+        self.post_synaptic['URBR'] = [0, 0]
+        self.post_synaptic['URXL'] = [0, 0]
+        self.post_synaptic['URXR'] = [0, 0]
+        self.post_synaptic['URYDL'] = [0, 0]
+        self.post_synaptic['URYDR'] = [0, 0]
+        self.post_synaptic['URYVL'] = [0, 0]
+        self.post_synaptic['URYVR'] = [0, 0]
+        self.post_synaptic['VA1'] = [0, 0]
+        self.post_synaptic['VA10'] = [0, 0]
+        self.post_synaptic['VA11'] = [0, 0]
+        self.post_synaptic['VA12'] = [0, 0]
+        self.post_synaptic['VA2'] = [0, 0]
+        self.post_synaptic['VA3'] = [0, 0]
+        self.post_synaptic['VA4'] = [0, 0]
+        self.post_synaptic['VA5'] = [0, 0]
+        self.post_synaptic['VA6'] = [0, 0]
+        self.post_synaptic['VA7'] = [0, 0]
+        self.post_synaptic['VA8'] = [0, 0]
+        self.post_synaptic['VA9'] = [0, 0]
+        self.post_synaptic['VB1'] = [0, 0]
+        self.post_synaptic['VB10'] = [0, 0]
+        self.post_synaptic['VB11'] = [0, 0]
+        self.post_synaptic['VB2'] = [0, 0]
+        self.post_synaptic['VB3'] = [0, 0]
+        self.post_synaptic['VB4'] = [0, 0]
+        self.post_synaptic['VB5'] = [0, 0]
+        self.post_synaptic['VB6'] = [0, 0]
+        self.post_synaptic['VB7'] = [0, 0]
+        self.post_synaptic['VB8'] = [0, 0]
+        self.post_synaptic['VB9'] = [0, 0]
+        self.post_synaptic['VC1'] = [0, 0]
+        self.post_synaptic['VC2'] = [0, 0]
+        self.post_synaptic['VC3'] = [0, 0]
+        self.post_synaptic['VC4'] = [0, 0]
+        self.post_synaptic['VC5'] = [0, 0]
+        self.post_synaptic['VC6'] = [0, 0]
+        self.post_synaptic['VD1'] = [0, 0]
+        self.post_synaptic['VD10'] = [0, 0]
+        self.post_synaptic['VD11'] = [0, 0]
+        self.post_synaptic['VD12'] = [0, 0]
+        self.post_synaptic['VD13'] = [0, 0]
+        self.post_synaptic['VD2'] = [0, 0]
+        self.post_synaptic['VD3'] = [0, 0]
+        self.post_synaptic['VD4'] = [0, 0]
+        self.post_synaptic['VD5'] = [0, 0]
+        self.post_synaptic['VD6'] = [0, 0]
+        self.post_synaptic['VD7'] = [0, 0]
+        self.post_synaptic['VD8'] = [0, 0]
+        self.post_synaptic['VD9'] = [0, 0]
+
+    def update(self):
+        if self.stimulate_hunger_neurons:
+            for neuron in ['RIML', 'RIMR', 'RICL', 'RICR']:
+                self.dendrite_accumulate(neuron)
+            self.run_connectome()
+        
+        if self.stimulate_nose_touch_neurons:
+            for neuron in ['FLPR', 'FLPL', 'ASHL', 'ASHR', 'IL1VL', 'IL1VR', 'OLQDL', 'OLQDR', 'OLQVR', 'OLQVL']:
+                self.dendrite_accumulate(neuron)
+            self.run_connectome()
+        
+        if self.stimulate_food_sense_neurons:
+            for neuron in ['ADFL', 'ADFR', 'ASGR', 'ASGL', 'ASIL', 'ASIR', 'ASJR', 'ASJL']:
+                self.dendrite_accumulate(neuron)
+            self.run_connectome()
+
+    def run_connectome(self):
+        for ps, values in self.post_synaptic.items():
+            if ps[:3] not in self.muscles and values[self.this_state] > self.fire_threshold:
+                self.fire_neuron(ps)
+        
+        self.motor_control()
+        
+        for ps in self.post_synaptic:
+            self.post_synaptic[ps][self.this_state] = self.post_synaptic[ps][self.next_state]
+        
+        self.this_state, self.next_state = self.next_state, self.this_state
+
+    def fire_neuron(self, f_neuron):
+        if f_neuron != 'MVULVA':
+            self.dendrite_accumulate(f_neuron)
+            self.post_synaptic[f_neuron][self.next_state] = 0
+
+    def motor_control(self):
+        self.accumleft = 0
+        self.accumright = 0
+        
+        for muscle in self.muscle_list:
+            if muscle in self.m_left:
+                self.accumleft += self.post_synaptic[muscle][self.next_state]
+                self.post_synaptic[muscle][self.next_state] = 0
+            elif muscle in self.m_right:
+                self.accumright += self.post_synaptic[muscle][self.next_state]
+                self.post_synaptic[muscle][self.next_state] = 0
+
+    def rand_excite(self):
+        import random
+        for _ in range(40):
+            neuron = random.choice(list(self.connectome.keys()))
+            self.dendrite_accumulate(neuron)
+
+if __name__ == '__main__':
+    brain = Brain()
+    brain.update()
